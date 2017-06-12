@@ -1,13 +1,6 @@
 #ifndef QTCOMLIBRARY_H
 #define QTCOMLIBRARY_H
 
-#include "qtcomlibrary_global.h"
-
-class QTCOMLIBRARYSHARED_EXPORT QtComLibrary
-{
-
-public:
-    QtComLibrary();
-};
+extern "C" int OpenCOM(int nId, const char* szIniPath);
 
 #endif // QTCOMLIBRARY_H
