@@ -10,10 +10,10 @@ QSharedPointer<QCoreApplication> app(new QCoreApplication(_argc, nullptr));
 
 QHash<int, QSharedPointer<SerialPortProc>> g_serialProc;
 
-int OpenCOM(int nId, const char* szIniPath)
+int OpenCOM(int nId, const char* szIniPath, RecvCallback pCallback)
 {
     g_serialProc.remove(nId);
-    g_serialProc.insert(nId, QSharedPointer<SerialPortProc>(new SerialPortProc()));
+    g_serialProc.insert(nId, QSharedPointer<SerialPortProc>(new SerialPortProc(pCallback)));
     auto serialProc = g_serialProc[nId];
 
     IniConfig config(szIniPath);
@@ -25,11 +25,45 @@ int OpenCOM(int nId, const char* szIniPath)
     QVariant stopBits = config.GetValue(section, "StopBits", 1);
 
     serialProc->setPortName(portName.toString());
-    serialProc->setBaudRate(baudRate.toInt());
-    serialProc->setDataBits((QSerialPort::DataBits)dataBits.toInt());
-    serialProc->setParity(parity.toInt());
-    serialProc->setStopBits((QSerialPort::StopBits)stopBits.toInt());
-    serialProc->open(QSerialPort::ReadWrite);
+
+    if (!serialProc->open(QSerialPort::ReadWrite))
+    {
+        qDebug() << "Open " << portName.toString() << " error";
+        return -1;
+    }
+    else
+    {
+        serialProc->setBaudRate(baudRate.toInt());
+        serialProc->setDataBits((QSerialPort::DataBits)dataBits.toInt());
+        serialProc->setParity(parity.toInt());
+        serialProc->setStopBits((QSerialPort::StopBits)stopBits.toInt());
+        serialProc->clearError();
+        serialProc->clear();
+    }
 
     return 0;
+}
+
+int ReadCOM(int nId, char* szRead, int nBufLen, int nTimeoutMs)
+{
+    auto serialProc = g_serialProc[nId];
+    if (serialProc->waitForReadyRead(nTimeoutMs))
+    {
+        QByteArray bytes = serialProc->readAll();
+        int nReadSize = (bytes.size() > nBufLen) ? nBufLen : bytes.size();
+        memcpy(szRead, bytes.data(), nReadSize);
+        return 0;
+    }
+    else
+    {
+        qDebug() << "Receive timeout";
+        return -1;
+    }
+    return 0;
+}
+
+int WriteCOM(int nId, char* szWrite, int nBufLen)
+{
+    auto serialProc = g_serialProc[nId];
+    return serialProc->write(szWrite, nBufLen);
 }
