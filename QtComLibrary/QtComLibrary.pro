@@ -38,4 +38,4 @@ unix {
     INSTALLS += target
 }
 
-DEFINES += USE_IN_QT_APP
+#DEFINES += USE_IN_QT_APPLICATION

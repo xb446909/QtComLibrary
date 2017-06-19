@@ -1,4 +1,5 @@
 #include "serialportproc.h"
+#include <QDebug>
 
 SerialPortProc::SerialPortProc(RecvCallback pCallback, QObject *parent)
     : QSerialPort(parent)

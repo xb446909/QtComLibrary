@@ -2,8 +2,9 @@
 #include "iniconfig.h"
 #include "serialportproc.h"
 #include <QSharedPointer>
+#include <QCoreApplication>
 
-#ifndef USE_IN_QT_APP
+#ifndef USE_IN_QT_APPLICATION
 int _argc = 1;
 QSharedPointer<QCoreApplication> app(new QCoreApplication(_argc, nullptr));
 #endif
@@ -12,9 +13,15 @@ QHash<int, QSharedPointer<SerialPortProc>> g_serialProc;
 
 int OpenCOM(int nId, const char* szIniPath, RecvCallback pCallback)
 {
+
+#ifndef USE_IN_QT_APPLICATION
+    QCoreApplication::processEvents();      // For create internal event process loop
+#endif
+
     g_serialProc.remove(nId);
     g_serialProc.insert(nId, QSharedPointer<SerialPortProc>(new SerialPortProc(pCallback)));
     auto serialProc = g_serialProc[nId];
+
 
     IniConfig config(szIniPath);
     QString section = QString().sprintf("SerialPort%d", nId);
@@ -65,5 +72,8 @@ int ReadCOM(int nId, char* szRead, int nBufLen, int nTimeoutMs)
 int WriteCOM(int nId, char* szWrite, int nBufLen)
 {
     auto serialProc = g_serialProc[nId];
-    return serialProc->write(szWrite, nBufLen);
+    int nRet = serialProc->write(szWrite, nBufLen);
+    serialProc->waitForBytesWritten(3000);
+    return nRet;
 }
+
