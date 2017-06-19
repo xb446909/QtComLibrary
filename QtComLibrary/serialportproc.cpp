@@ -1,11 +1,16 @@
 #include "serialportproc.h"
-#include <QDebug>
 
 SerialPortProc::SerialPortProc(RecvCallback pCallback, QObject *parent)
     : QSerialPort(parent)
     , recvCallback(pCallback)
 {
     connect(this, SIGNAL(readyRead()), this, SLOT(readReadySlot()));
+}
+
+SerialPortProc::~SerialPortProc()
+{
+    clear();
+    close();
 }
 
 void SerialPortProc::setParity(int nParity)
@@ -34,6 +39,9 @@ void SerialPortProc::setParity(int nParity)
 
 void SerialPortProc::readReadySlot()
 {
-    QByteArray bytes = readAll();
-    recvCallback(bytes.size(), bytes.data());
+    if (recvCallback != nullptr)
+    {
+        QByteArray bytes = readAll();
+        recvCallback(bytes.size(), bytes.data());
+    }
 }

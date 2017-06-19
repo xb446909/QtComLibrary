@@ -9,6 +9,7 @@ class SerialPortProc : public QSerialPort
     Q_OBJECT
 public:
     SerialPortProc(RecvCallback pCallback, QObject* parent = nullptr);
+    ~SerialPortProc();
     void setParity(int nParity);
 
 public slots:
