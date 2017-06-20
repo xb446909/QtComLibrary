@@ -53,6 +53,11 @@ int OpenCOM(int nId, const char* szIniPath, RecvCallback pCallback)
 
 int ReadCOM(int nId, char* szRead, int nBufLen, int nTimeoutMs)
 {
+    if (!g_serialProc.contains(nId))
+    {
+        qDebug() << "Wrong id: " << __func__;
+        return -1;
+    }
     auto serialProc = g_serialProc[nId];
     if (serialProc->waitForReadyRead(nTimeoutMs))
     {
@@ -71,9 +76,27 @@ int ReadCOM(int nId, char* szRead, int nBufLen, int nTimeoutMs)
 
 int WriteCOM(int nId, char* szWrite, int nBufLen)
 {
+    if (!g_serialProc.contains(nId))
+    {
+        qDebug() << "Wrong id: " << __func__;
+        return -1;
+    }
     auto serialProc = g_serialProc[nId];
     int nRet = serialProc->write(szWrite, nBufLen);
     serialProc->waitForBytesWritten(3000);
     return nRet;
+}
+
+int CloseCOM(int nId)
+{
+    if (!g_serialProc.contains(nId))
+    {
+        qDebug() << "Wrong id: " << __func__;
+        return -1;
+    }
+    auto serialProc = g_serialProc[nId];
+    serialProc->close();
+    g_serialProc.remove(nId);
+    return 0;
 }
 
