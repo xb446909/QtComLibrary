@@ -64,7 +64,7 @@ int ReadCOM(int nId, char* szRead, int nBufLen, int nTimeoutMs)
         QByteArray bytes = serialProc->readAll();
         int nReadSize = (bytes.size() > nBufLen) ? nBufLen : bytes.size();
         memcpy(szRead, bytes.data(), nReadSize);
-        return 0;
+        return nReadSize;
     }
     else
     {
